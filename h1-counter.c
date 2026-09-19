@@ -28,6 +28,7 @@
  * for closing the returned socket.
  */
 int lookup_and_connect(const char *host, const char *service);
+int sendall(int s, char *buf, int len);
 int recvall(int s, char *buf, int len);
 
 int main(int argc, char *argv[]) {
@@ -46,13 +47,12 @@ int main(int argc, char *argv[]) {
   }
   chunkSize = atoi(argv[1]);
 
-
   /* Lookup IP and connect to server */
   if ((s = lookup_and_connect(host, port)) < 0)
     exit(1);
 
-  if (send(s, buf, strlen(buf), 0) < strlen(buf))
-    printf("Error while sending request");
+  if (sendall(s, buf, strlen(buf)) < strlen(buf))
+    exit(1);
 
   while (1) {
     if ((n = recvall(s, buf, chunkSize)) == 0) {
@@ -77,6 +77,24 @@ int main(int argc, char *argv[]) {
   close(s);
 
   return 0;
+}
+
+// Modified from Beej's Guide to Network Programming 
+int sendall(int s, char *buf, int len) {
+  int total = 0;        // how many bytes we've sent
+  int bytesleft = len;  // how many we have left to send
+  int n;
+
+  while (total < len) {
+    n = send(s, buf + total, bytesleft, 0);
+    if (n == -1) {
+      break;
+    }
+    total += n;
+    bytesleft -= n;
+  }
+
+  return total;
 }
 
 // Modified from Beej's Guide to Network Programming
