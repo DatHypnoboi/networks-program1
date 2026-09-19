@@ -51,8 +51,10 @@ int main(int argc, char *argv[]) {
   if ((s = lookup_and_connect(host, port)) < 0)
     exit(1);
 
-  if (sendall(s, buf, strlen(buf)) < strlen(buf))
+  if (sendall(s, buf, strlen(buf)) < strlen(buf)) {
+    printf("Error while sending request\n");
     exit(1);
+  }
 
   while (1) {
     if ((n = recvall(s, buf, chunkSize)) == 0) {
@@ -79,17 +81,16 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-// Modified from Beej's Guide to Network Programming 
+// Modified from Beej's Guide to Network Programming
 int sendall(int s, char *buf, int len) {
-  int total = 0;        // how many bytes we've sent
-  int bytesleft = len;  // how many we have left to send
+  int total = 0;       // how many bytes we've sent
+  int bytesleft = len; // how many we have left to send
   int n;
 
   while (total < len) {
     n = send(s, buf + total, bytesleft, 0);
-    if (n == -1) {
+    if (n == -1)
       break;
-    }
     total += n;
     bytesleft -= n;
   }
